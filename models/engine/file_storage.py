@@ -4,6 +4,7 @@ Contains the FileStorage class
 """
 
 import json
+import models
 from models.amenity import Amenity
 from models.base_model import BaseModel
 from models.city import City
@@ -55,7 +56,7 @@ class FileStorage:
                 jo = json.load(f)
             for key in jo:
                 self.__objects[key] = classes[jo[key]["__class__"]](**jo[key])
-        except Exception:
+        except:
             pass
 
     def delete(self, obj=None):
@@ -70,20 +71,30 @@ class FileStorage:
         self.reload()
 
     def get(self, cls, id):
-        """Method to return the object based on the class and its ID"""
-        if cls:
-            for value in self.__objects.values():
-                if cls == value.__class__ or cls == value.__class__.__name__:
-                    if id == value.id:
-                        return value
+        """returns the object based on the class and its ID"""
+        if cls not in classes.values():
+            return None
+
+        all_cls = models.storage.all(cls)
+        for value in all_cls.values():
+            if (value.id == id):
+                return value
+
         return None
 
     def count(self, cls=None):
-        """Returns the number of objects
-        in storage matching the given class."""
-        if cls:
-            all_objs_dict = self.all(cls)
-            count = len(all_objs_dict)
+        """
+        returns the number of objects in storage matching the given
+        class, if no class is passed,  returns the count of all objects
+        in storage
+        """
+        all_classes = classes.values()
+
+        if not cls:
+            count = 0
+            for clas in all_classes:
+                count += len(models.storage.all(clas).values())
         else:
-            count = len(self.all())
+            count = len(models.storage.all(cls).values())
+
         return count
